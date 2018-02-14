@@ -1,0 +1,22 @@
+{
+  "name": "nodeham",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "express-fileupload": "^0.4.0",
+    "jsonwebtoken": "^8.1.1",
+    "mongoose": "^5.0.4",
+    "mongoose-unique-validator": "^2.0.0",
+    "nodemon": "^1.14.12"
+  }
+}
