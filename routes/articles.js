@@ -1,6 +1,7 @@
 const express = require("express");
+const middleWareAuth = require("../middleware/authentication");
 
-let app = express();
+const app = express();
 
 // Import the articles as mongoose schema
 const Article = require('../models/article');
@@ -9,12 +10,13 @@ const Article = require('../models/article');
 const fileUpload = require('express-fileupload');
 
 // ==================================================
-//       Define the route 
+//       Article find
 // ==================================================
-app.get("/", (req, res, next) => {
+app.get("/", (req, res) => {
 
-    Article.find({}).sort('name').exec( (err, articles) => {
-
+    Article.find({}).sort('name')
+        
+        .exec((err, articles) => {
         if (err) {            
             return res.status(500).json({
                 ok: false,
@@ -34,10 +36,10 @@ app.get("/", (req, res, next) => {
 // ==================================================
 //       Update the article
 // ==================================================
-app.put("/:id", (req, res) => {
+app.put("/:id", middleWareAuth.verifyToken, (req, res) => {
 
-    const id = req.params.id;// Grab the ID from the url
-    let body = req.body;
+    const id = req.params.id; // Grab the ID from the url
+    let body = req.body; // Recive the payload
 
     Article.findById(id, (err, article) => {
 
@@ -59,30 +61,32 @@ app.put("/:id", (req, res) => {
             });
         }
 
+        // Update the article from the payload info
         article.name = body.name;
-        article.image = body.image;
         article.category = body.category;
+        article.image = body.image;
         article.date = body.date;
         article.author = body.author;
         article.content = body.content;
         article.labels = body.labels;
         article.comments = body.comments;
         
-        article.save((err, userSaved) => {
+        article.save((err, articleSaved) => {
 
-            if (err) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Conflict trying to update article',
-                    errors: err
-                });
-            }
+          if (err) {  
+            return res.status(400)
+              .json({
+                ok: false,
+                message: "Conflict trying to update article",
+                errors: err
+              });
+          }
 
-            res.status(200).json({
-                ok: true,
-                userSaved: userSaved
-            }); 
-            
+          res.status(200)
+            .json({
+              ok: true,
+              articleSaved: articleSaved
+            });
         });
     });
 });
@@ -92,43 +96,40 @@ app.put("/:id", (req, res) => {
 //       POST Article 
 // ==================================================
 
-app.post('/', (req, res) => {
+app.post("/", middleWareAuth.verifyToken, (req, res) => {
+  
+    const body = req.body; // Recive the payload
 
-    let body = req.body;
+  //  Create a reference to the article's Schema
+  //----------------------------------------------
+  const article = new Article({
+    name: body.name,
+    category: body.category,
+    image: body.image,
+    date: body.date,
+    // Get the req.user from the middleware
+    author: req.user._id,
+    content: body.content,
+    labels: body.labels,
+    comments: body.comments
+  });
 
-    //  Create a reference to the article's Schema
-    //----------------------------------------------
-    const article = new Article({
-        name: body.name,
-        category: body.category,
-        image: body.image,
-        date: body.date,
-        author: body.author,
-        content: body.content,
-        labels: body.labels,
-        comments: body.comments,
+  // Save on the Database
+  article.save((err, articleSaved) => {
+    if (err) {
+      return res.status(500).json({
+        ok: false,
+        message: "Error",
+        erors: err
+      });
+    }
+
+    // 201 Created!
+    res.status(201).json({
+      ok: true,
+      article: articleSaved,
     });
-
-
-    // Save on the Database
-    article.save((err, success) => {
-
-        if (err) {            
-            return res.status(500).json({
-                ok: false,
-                message: 'Error',
-                erors: err
-            });
-        }
-
-        // 201 Created!
-        res.status(201).json({
-            ok: true,
-            body: body, 
-            message:'Just posted on db',
-        });
-        
-    })
+  });
 });
 
 
@@ -138,36 +139,36 @@ app.post('/', (req, res) => {
 // ==================================================
 
 
-app.delete('/:id', (req, res) => {
-    // Grab the ID from the url
-    const id = req.params.id;
+app.delete("/:id", middleWareAuth.verifyToken, (req, res) => {
+  // Grab the ID from the url
+  const id = req.params.id;
 
-    Article.findByIdAndRemove(id, (err, eraseArticle) => {
+  Article.findByIdAndRemove(id, (err, eraseArticle) => {
+    if (err) {
+      return res.status(500).json({
+        ok: false,
+        message: "Error trying to erase the Article",
+        erors: err
+      });
+    }
 
-        if (err) {            
-            return res.status(500).json({
-                ok: false,
-                message: 'Error trying to erase the Article',
-                erors: err
-            });
+    if (!eraseArticle) {
+      return res.status(500).json({
+        ok: false,
+        message: "That article does not exist",
+        erors: {
+          message:
+            "The article with that ID can't be erased, it might not exist"
         }
+      });
+    }
 
-
-        if (!eraseArticle) {            
-            return res.status(500).json({
-                ok: false,
-                message: 'That article does not exist',
-                erors: {message: 'The article with that ID can\'t be erased, it might not exist'}
-            });
-        }
-
-           // 200 success
-        res.status(200).json({
-            ok: true,
-            message:'Article erased!',
-        });
-
+    // 200 success
+    res.status(200).json({
+      ok: true,
+      message: "Article erased!"
     });
+  });
 });
 
 
