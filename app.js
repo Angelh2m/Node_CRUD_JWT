@@ -30,7 +30,10 @@ app.use(bodyParser.json())
 const appRoutes = require('./routes/app');
 const appArticles = require('./routes/articles');
 const appUsers = require('./routes/users');
-const loginRoutes = require('./routes/login');
+const loginRoute = require('./routes/login');
+const searchRoute = require("./routes/search");
+const uploadRoute = require("./routes/upload");
+const imageRoute = require("./routes/img");
 
 
  
@@ -50,7 +53,10 @@ mongoose.connection.openUri(
 // Define all the routes
 app.use('/articles', appArticles);
 app.use('/users', appUsers);
-app.use('/login', loginRoutes);
+app.use('/login', loginRoute);
+app.use('/search', searchRoute);
+app.use('/upload', uploadRoute);
+app.use("/img", imageRoute);
 app.use('/', appRoutes);
 
 

@@ -14,22 +14,33 @@ const fileUpload = require('express-fileupload');
 // ==================================================
 app.get("/", (req, res) => {
 
-    Article.find({}).sort('name')
-        
-        .exec((err, articles) => {
-        if (err) {            
-            return res.status(500).json({
-                ok: false,
-                message: 'Error loading Article',
-                errors: err
-            });
-        }
+  let from = req.query.from || 0;
+  from = Number(from);
 
+  Article.find({})
+    .skip(from)  
+    .limit(10)  
+    .sort({ "updatedAt": -1 })
+    .populate('author')
+    .exec((err, articles) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({
+            ok: false,
+            message: "Error loading Article",
+            errors: err
+          });
+      }
+
+      Article.count({}, (err, count) => {
         res.status(200).json({
-            ok: true,
-            articles: articles
+          ok: true,
+          count: count,
+          articles: articles,
         });
 
+      });
     });
 });
 
@@ -60,9 +71,21 @@ app.put("/:id", middleWareAuth.verifyToken, (req, res) => {
                 }
             });
         }
+      
+        // let url = body.name;
+
+        function transform( string ){
+        
+          return string.split(' ').join('-').toLowerCase();
+        
+        }
+        
+
+        
 
         // Update the article from the payload info
         article.name = body.name;
+        article.url = transform(article.name);
         article.category = body.category;
         article.image = body.image;
         article.date = body.date;
@@ -98,12 +121,22 @@ app.put("/:id", middleWareAuth.verifyToken, (req, res) => {
 
 app.post("/", middleWareAuth.verifyToken, (req, res) => {
   
-    const body = req.body; // Recive the payload
+  const body = req.body; // Recive the payload
+   // let url = body.name;
+
+  function transform( string ){
+        
+    return string.split(' ').join('-').toLowerCase();
+  
+  }
+  
+
 
   //  Create a reference to the article's Schema
   //----------------------------------------------
   const article = new Article({
     name: body.name,
+    url: transform( body.name),
     category: body.category,
     image: body.image,
     date: body.date,

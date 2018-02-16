@@ -14,7 +14,7 @@ const User = require('../models/user');
 // ==================================================
 //       GET users
 // ==================================================
-app.get("/", (req, res) => {
+app.get("/", middleWareAuth.verifyToken, (req, res) => {
 
     User.find({}, 'name email img role ')
         .exec((err, users) => {
@@ -35,6 +35,13 @@ app.get("/", (req, res) => {
         });
 });
 
+
+
+
+
+
+
+
  
 
 
@@ -42,7 +49,7 @@ app.get("/", (req, res) => {
 //       POST-CREATE users 
 // ==================================================
 
-app.post('/', middleWareAuth.verifyToken, (req, res) => {
+app.post('/', (req, res) => {
 
     // body parser gets the sen't data
     const body = req.body;

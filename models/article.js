@@ -15,6 +15,10 @@ const articleSchema = new Schema(
       unique: true,
       required: [true, "The name of the article is required"]
     },
+    url: {
+      type: String,
+      unique: false,
+    },
     category: {
       type: String,
       required: [true, "Article's categories are required"]
