@@ -18,9 +18,12 @@ app.get("/all/:term", (req, res) => {
                 articles: articles
             });
         });
-
 });
 
+
+// ==================================================
+//       Search All with a  PROMISE
+// ==================================================
 
 function searchArticles(regex) {
     
@@ -57,9 +60,30 @@ app.get("/:category/:term", (req, res) => {
             articles: articles
         });
     }); 
+});
+
+
+// ==================================================
+//       Search by Category
+// ==================================================
+
+
+app.get("/:category", (req, res) => {
+
+    const category = req.params.category;
+    // const regex = new RegExp(search, 'i'); 
+    Article.find({ 'category': category }, 'name url category image createdAt updatedAt')
+        .populate('author', 'name')    
+        .exec((err, category) => {
+        res.status(200).json({
+            ok: true,
+            categories: category
+        });
+    }); 
 
 
 });
+
 
 
 
